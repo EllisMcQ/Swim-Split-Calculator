@@ -17,12 +17,44 @@ def load_video():
             print("Something went wrong...")
 
     capture = cv2.VideoCapture(video_path)
+    fps = capture.get(cv2.CAP_PROP_FPS)
+    fc = capture.get(cv2.CAP_PROP_FRAME_COUNT)
 
     if not capture.isOpened():
         print("Something went wrong...")
 
-load_video()
+    return capture, fps, fc
 
+
+
+def frame_picker(capture):
+
+    split_frames = []
+
+    success, frame = capture.read()
+
+    while success:
+        cv2.imshow("swim-vid", frame)
+        print("Press Space to save, Press Enter to continue... ")
+        key_pressed = cv2.waitKey(delay=0)
+
+        if key_pressed == ord(" "):
+            split_frames.append(int(capture.get(cv2.CAP_PROP_POS_FRAMES)))
+            print(split_frames)
+        elif key_pressed == ord("\r"):
+            success, frame = capture.read()
+
+        
     
+    return split_frames
+
+
+
+capture, fps, fc = load_video()
+frame_picker(capture)
+
+
+
+
 
 
