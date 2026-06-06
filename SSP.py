@@ -41,6 +41,7 @@ def frame_picker(capture):
         cv2.imshow("swim-vid", frame)
         #print(" 'Space' to save, 'Enter' to continue, 'Q' to Finish ")
         key_pressed = cv2.waitKey(delay=0)
+        print(split_frames)
 
         if key_pressed == ord(" "):
             split_frames.append(int(capture.get(cv2.CAP_PROP_POS_FRAMES)))
@@ -48,11 +49,19 @@ def frame_picker(capture):
             success, frame = capture.read()
         elif key_pressed == ord("\r"):
             success, frame = capture.read()
+        elif key_pressed == ord("\x08"):
+            prev_frame = int(capture.get(cv2.CAP_PROP_POS_FRAMES)) - 2
+            if split_frames and prev_frame == split_frames[-1]:
+                split_frames.pop()
+            current = capture.get(cv2.CAP_PROP_POS_FRAMES)
+            capture.set(cv2.CAP_PROP_POS_FRAMES, current - 2)
+            success, frame = capture.read()
         elif key_pressed == ord("q"):
             break
+            
 
     return split_frames
-
+ 
 
 def calculator(split_frames, fps, end_time):
 
@@ -77,9 +86,3 @@ def calculator(split_frames, fps, end_time):
 capture, fps, end_time = load_video()
 split_frame_nums = frame_picker(capture)
 calculator(split_frame_nums, fps, end_time)
-
-
-
-
-
-

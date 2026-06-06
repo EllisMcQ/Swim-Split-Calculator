@@ -52,8 +52,6 @@ important as shipping.
 2. Let user tap frames at each marker (spacebar or click)
 3. Convert frame numbers to times using fps
 4. Calculate pace per segment (distance/time)
-5. Save race result with metadata
-6. Load and compare two saved races side by side
 
 ## What v1 must NOT do
 No auto-detection, no GUI, no charts, no live analysis.
