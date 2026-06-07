@@ -8,9 +8,7 @@ def load_video():
 
     while not file_found:
         video_path = input("Enter Video: ")
-        end_time = float(input("Time of race (00.00): -->   "))
-
-
+        end_time = float(input("Time of race (00.00): --> "))
 
         if os.path.exists(video_path):
             print("File found")
@@ -20,7 +18,6 @@ def load_video():
 
     capture = cv2.VideoCapture(video_path)
     fps = capture.get(cv2.CAP_PROP_FPS)
-    fc = capture.get(cv2.CAP_PROP_FRAME_COUNT)
 
     if not capture.isOpened():
         print("Something went wrong...")
@@ -33,7 +30,6 @@ def frame_picker(capture):
     split_frames = []
 
     success, frame = capture.read()
-
 
     print(" 'Space' to save, 'Enter' to continue, 'Q' to Finish ")
     while success:
@@ -59,7 +55,6 @@ def frame_picker(capture):
         elif key_pressed == ord("q"):
             break
             
-
     return split_frames
  
 
