@@ -1,5 +1,6 @@
 import cv2
 import os
+from Race import Race
 
 
 def load_video():
@@ -31,13 +32,13 @@ def frame_picker(capture):
 
     success, frame = capture.read()
 
-    print(" 'Space' to save, 'Enter' to continue, 'Q' to Finish ")
+    print(" 'Space' - Mark Split  |  'Backspace' - Rewind Frame   |  'Enter' — Continue  |  'Q' — Finish ")
     while success:
         frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
         cv2.imshow("swim-vid", frame)
         #print(" 'Space' to save, 'Enter' to continue, 'Q' to Finish ")
         key_pressed = cv2.waitKey(delay=0)
-        print(split_frames)
+        
 
         if key_pressed == ord(" "):
             split_frames.append(int(capture.get(cv2.CAP_PROP_POS_FRAMES)))
@@ -62,22 +63,46 @@ def calculator(split_frames, fps, end_time):
 
     splits = [round(i/fps, 2) for i in split_frames]
     start_time = round(splits[3] - end_time, 2)
+    segment_splits = []
+    segment_splits.append(splits[0] - start_time)
 
-    s1 = round(splits[0] - start_time, 2)
-    s2 = round(splits[1] - splits[0], 2)
-    s3 = round(splits[2] - splits[1], 2)
-    s4 = round(splits[3] - splits[2], 2)
+    for i in range(1, len(splits)):
+        segment_splits.append(round(splits[i] - splits[i-1], 2))
+
+    distances = [15, 25, 35, 50]
+    split_dicts = []
+    for d, s, c in zip(distances, segment_splits, splits):
+        split_dicts.append({"distance": d, "segment_split": s, "cumulative_split": round(c, 2)})
+    
     print(f"""splits:
           
-15m = {s1}
-25m = {round(s1+s2, 2), s2}
-35m = {round(s1+s2+s3, 2), s3}
-50m = {end_time, s4}
+15m = {round(segment_splits[0], 2)}
+25m = {round(segment_splits[0]+segment_splits[1], 2), segment_splits[1]}
+35m = {round(segment_splits[0]+segment_splits[1]+segment_splits[2], 2), segment_splits[2]}
+50m = {end_time, segment_splits[3]}
           """)
-    return splits
+    
+    return split_dicts
+
+
+def get_save_info():
+    stroke = input("Stroke: ")
+    distance = int(input("Distance: "))
+    course = input("LC/SC: ")
+    date = input("Date - (DD/MM/YY): ")
+
+    return stroke, distance, course, date
 
 
 
 capture, fps, end_time = load_video()
 split_frame_nums = frame_picker(capture)
-calculator(split_frame_nums, fps, end_time)
+split_dicts = calculator(split_frame_nums, fps, end_time)
+
+choice = input("Press S to save, C to cancel: ").lower()
+if choice == "s":
+    stroke, distance, course, date = get_save_info()
+    race = Race(None, stroke, distance, course, date, end_time)
+    race.splits = split_dicts
+    results = race.save_race()
+    print("Saved")
