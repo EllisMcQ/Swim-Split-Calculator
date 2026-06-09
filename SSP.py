@@ -72,7 +72,7 @@ def calculator(split_frames, fps, end_time):
     distances = [15, 25, 35, 50]
     split_dicts = []
     for d, s, c in zip(distances, segment_splits, splits):
-        split_dicts.append({"distance": d, "segment_split": s, "cumulative_split": round(c, 2)})
+        split_dicts.append({"distance": d, "segment_split": s, "cumulative_split": round(c - start_time, 2)})
     
     print(f"""splits:
           
@@ -86,7 +86,7 @@ def calculator(split_frames, fps, end_time):
 
 
 def get_save_info():
-    stroke = input("Stroke: ")
+    stroke = input("Stroke (FL, BC, BS, FS): ")
     distance = int(input("Distance: "))
     course = input("LC/SC: ")
     date = input("Date - (DD/MM/YY): ")
@@ -94,15 +94,47 @@ def get_save_info():
     return stroke, distance, course, date
 
 
+def view_records():
+    stroke = input("Stroke (FL, BC, BS, FS): ")
+    distance = int(input("Distance: "))
+    course = input("Course (LC/SC): ")
 
-capture, fps, end_time = load_video()
-split_frame_nums = frame_picker(capture)
-split_dicts = calculator(split_frame_nums, fps, end_time)
+    races = Race.get_races(stroke, distance, course)
 
-choice = input("Press S to save, C to cancel: ").lower()
-if choice == "s":
-    stroke, distance, course, date = get_save_info()
-    race = Race(None, stroke, distance, course, date, end_time)
-    race.splits = split_dicts
-    results = race.save_race()
-    print("Saved")
+    if not races:
+        print("No races found")
+        return
+    
+    for race in races:
+        print(f"\nDate: {race['date']}  |  Total time: {race['total_time']}s")
+        for split in race['splits']:
+            print(f"  {split['distance']}m — split: {split['segment_split']}s  cumulative: {split['cumulative_split']}s")
+
+
+def main_menu():
+    print("================================")
+    print("    Swim Split Analyser v1")
+    print("--------------------------------")
+    print("  1 - Analyse a new race")
+    print("  2 - View records")
+    print("================================")
+    print(" ")
+    choice = input("Select an option: ")
+    return choice
+
+choice = main_menu()
+if choice == "1":
+    capture, fps, end_time = load_video()
+    split_frame_nums = frame_picker(capture)
+    split_dicts = calculator(split_frame_nums, fps, end_time)
+
+    choice = input("Press S to save, C to cancel: ").lower()
+    if choice == "s":
+        stroke, distance, course, date = get_save_info()
+        race = Race(None, stroke, distance, course, date, end_time)
+        race.splits = split_dicts
+        results = race.save_race()
+        print("Saved")
+
+elif choice == "2":
+    view_records()
